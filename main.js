@@ -1,3 +1,4 @@
+var board;
 var myGamePiece;
 var myObstacles = [];
 var myScore;
@@ -6,14 +7,15 @@ function startGame() {
     myGamePiece = new component(30, 30, "red", 10, 120);
     myGamePiece.gravity = 0.05;
     myScore = new component("30px", "Consolas", "black", 280, 40, "text");
-    myGameArea.start();
+    board = new myGameArea();
+    board.start();
 }
 
 class myGameArea {
     constructor() {
         this.canvas = document.createElement("canvas");
     }
-    static start() {
+    start = () => {
         this.canvas.width = 480;
         this.canvas.height = 270;
         this.context = this.canvas.getContext("2d");
@@ -21,12 +23,13 @@ class myGameArea {
         this.frameNo = 0;
         this.interval = setInterval(updateGameArea, 20);
         }
-    static clear() {
+    clear = () => {
         this.context.clearRect(0, 0, this.canvas.width, this.canvas.height);
     }
 }
 
-function component(width, height, color, x, y, type) {
+class component {
+    constructor (width, height, color, x, y, type) {
     this.type = type;
     this.score = 0;
     this.width = width;
@@ -37,31 +40,34 @@ function component(width, height, color, x, y, type) {
     this.y = y;
     this.gravity = 0;
     this.gravitySpeed = 0;
-    this.update = function() {
-        ctx = myGameArea.context;
+    this.ctx = {};
+    this.color = color;
+    }
+    update = () => {
+        this.ctx = board.context;
         if (this.type == "text") {
-            ctx.font = this.width + " " + this.height;
-            ctx.fillStyle = color;
-            ctx.fillText(this.text, this.x, this.y);
+            this.ctx.font = this.width + " " + this.height;
+            this.ctx.fillStyle = this.color;
+            this.ctx.fillText(this.text, this.x, this.y);
         } else {
-            ctx.fillStyle = color;
-            ctx.fillRect(this.x, this.y, this.width, this.height);
+            this.ctx.fillStyle = this.color;
+            this.ctx.fillRect(this.x, this.y, this.width, this.height);
         }
     }
-    this.newPos = function() {
+    newPos = () => {
         this.gravitySpeed += this.gravity;
         this.x += this.speedX;
         this.y += this.speedY + this.gravitySpeed;
         this.hitBottom();
     }
-    this.hitBottom = function() {
-        var rockbottom = myGameArea.canvas.height - this.height;
+    hitBottom = () => {
+        var rockbottom = board.canvas.height - this.height;
         if (this.y > rockbottom) {
             this.y = rockbottom;
             this.gravitySpeed = 0;
         }
     }
-    this.crashWith = function(otherobj) {
+    crashWith = (otherobj) => {
         var myleft = this.x;
         var myright = this.x + (this.width);
         var mytop = this.y;
@@ -85,10 +91,10 @@ function updateGameArea() {
             return;
         } 
     }
-    myGameArea.clear();
-    myGameArea.frameNo += 1;
-    if (myGameArea.frameNo == 1 || everyinterval(150)) {
-        x = myGameArea.canvas.width;
+    board.clear();
+    board.frameNo += 1;
+    if (board.frameNo == 1 || everyinterval(150)) {
+        x = board.canvas.width;
         minHeight = 20;
         maxHeight = 200;
         height = Math.floor(Math.random()*(maxHeight-minHeight+1)+minHeight);
@@ -102,14 +108,14 @@ function updateGameArea() {
         myObstacles[i].x += -1;
         myObstacles[i].update();
     }
-    myScore.text="SCORE: " + myGameArea.frameNo;
+    myScore.text="SCORE: " + board.frameNo;
     myScore.update();
     myGamePiece.newPos();
     myGamePiece.update();
 }
 
 function everyinterval(n) {
-    if ((myGameArea.frameNo / n) % 1 == 0) {return true;}
+    if ((board.frameNo / n) % 1 == 0) {return true;}
     return false;
 }
 
